@@ -49,7 +49,10 @@ func foo(w http.ResponseWriter, r *http.Request) {
 }
 
 func kpiHander(w http.ResponseWriter, r *http.Request) {
-	kpi := Kpi{"OEE", 88.0, 88.1}
+	kpi := []Kpi{
+		Kpi{"OEE", 88.0, 88.1},
+		Kpi{"Prod", 95, 88},
+	}
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -58,7 +61,7 @@ func kpiHander(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	
+
 	err = db.Ping()
 	if err != nil {
 		panic(err)
