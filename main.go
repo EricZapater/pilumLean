@@ -21,13 +21,7 @@ type Kpi struct {
 	Valor      float32
 }
 
-const (
-	host     = "vps.pilumsoft.ovh"
-	port     = 5432
-	user     = "postgres"
-	password = "'En un lugar de la *'"
-	dbname   = "lean_dev"
-)
+
 
 func main() {
 	http.HandleFunc("/", foo)
