@@ -1,72 +1,36 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
+	"github.com/gorilla/mux"
+	"go-contacts/app"
+	"os"
 	"fmt"
-	"log"
 	"net/http"
-
-	_ "github.com/lib/pq"
+	"go-contacts/controllers"
 )
 
-type Profile struct {
-	Name    string
-	Hobbies []string
-}
-
-type Kpi struct {
-	Descripcio string
-	Objectiu   float32
-	Valor      float32
-}
-
-
-
 func main() {
-	http.HandleFunc("/", foo)
-	http.HandleFunc("/kpi", kpiHander)
-	http.ListenAndServe(":3000", nil)
-}
 
-func foo(w http.ResponseWriter, r *http.Request) {
-	profile := Profile{"Alex", []string{"snowboarding", "programming"}}
+	router := mux.NewRouter()
 
-	js, err := json.Marshal(profile)
+	router.HandleFunc("/api/user/new", controllers.CreateAccount).Methods("POST")
+	router.HandleFunc("/api/user/login", controllers.Authenticate).Methods("POST")
+	router.HandleFunc("/api/contacts/new", controllers.CreateContact).Methods("POST")
+	router.HandleFunc("/api/me/contacts", controllers.GetContactsFor).Methods("GET") //  user/2/contacts
+
+	router.Use(app.JwtAuthentication) //attach JWT auth middleware
+
+	//router.NotFoundHandler = app.NotFoundHandler
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000" //localhost
+	}
+
+	fmt.Println(port)
+
+	err := http.ListenAndServe(":" + port, router) //Launch the app, visit localhost:8000/api
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		fmt.Print(err)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
-}
-
-func kpiHander(w http.ResponseWriter, r *http.Request) {
-	kpi := []Kpi{
-		Kpi{"OEE", 88.0, 88.1},
-		Kpi{"Prod", 95, 88},
-	}
-	connStr := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	jskpi, err := json.Marshal(kpi)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jskpi)
 }
